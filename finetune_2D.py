@@ -69,6 +69,8 @@ def split_train_val(X, Y, perc_val=0.15):
     print('- training:       %3d' % len(X_trn))
     print('- validation:     %3d' % len(X_val))
 
+    return X_trn, Y_trn, X_val, Y_val
+
 def resume_training(X_trn, Y_trn, X_val, Y_val, epochs=2, steps_per_epoch=10):
     # prints a list of available models
     StarDist2D.from_pretrained()
