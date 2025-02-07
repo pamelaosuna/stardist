@@ -9,7 +9,6 @@ import numpy as np
 from csbdeep.utils import Path, normalize
 
 from stardist.models import StarDist2D, Config2D
-from stardist.data import test_image_nuclei_2d
 from stardist.plot import render_label
 from stardist import fill_label_holes
 
@@ -49,7 +48,7 @@ def load_data(img_dir, mask_dir):
     axis_norm = (0,1)   # normalize channels independently
 
     if n_channel > 1:
-    print("Normalizing image channels %s." % ('jointly' if axis_norm is None or 2 in axis_norm else 'independently'))
+        print("Normalizing image channels %s." % ('jointly' if axis_norm is None or 2 in axis_norm else 'independently'))
     sys.stdout.flush()
 
     X = [normalize(x,1,99.8,axis=axis_norm) for x in tqdm(X)]
