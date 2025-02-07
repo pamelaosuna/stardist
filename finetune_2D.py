@@ -70,15 +70,18 @@ def split_train_val(X, Y, perc_val=0.15):
     print('- training:       %3d' % len(X_trn))
     print('- validation:     %3d' % len(X_val))
 
-def resume_training(X_trn, Y_trn, X_val, Y_val, epochs=2):
+def resume_training(X_trn, Y_trn, X_val, Y_val, epochs=2, steps_per_epoch=10):
     # prints a list of available models
     StarDist2D.from_pretrained()
 
     # loads a pretrained model
     model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
-    model.train(X_trn, Y_trn, validation_data=(X_val,Y_val), augmenter=augmenter,
-                epochs=2, steps_per_epoch=10)
+    model.train(X_trn, Y_trn, 
+                validation_data=(X_val,Y_val), 
+                augmenter=augmenter,
+                epochs=epochs, 
+                steps_per_epoch=steps_per_epoch)
     
     # saves the model weights and configuration?
     model.save_weights('weights_best.h5')
