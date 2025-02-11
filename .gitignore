@@ -22,3 +22,6 @@ htmlcov/
 config.json
 thresholds.json
 examples/**/data
+
+# custom
+.vscode/
