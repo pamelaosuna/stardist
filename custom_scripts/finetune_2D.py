@@ -3,6 +3,8 @@ import sys
 from glob import glob
 import argparse
 
+import tifffile as tiff
+from skimage import io
 from tqdm import tqdm
 import numpy as np
 
@@ -42,7 +44,12 @@ def augmenter(x, y):
 
 def load_data(img_dir, mask_dir):
     X = sorted(glob(os.path.join(img_dir, '*.tif')))
-    Y = sorted(glob(os.path.join(mask_dir, '*.tif')))
+    Y = sorted(glob(os.path.join(mask_dir, '*.png')))
+
+    assert all(x.split('/')[-1].split('.')[0]==y.split('/')[-1].split('.')[0] for x,y in zip(X,Y))
+
+    X = list(map(tiff.imread,X))
+    Y = list(map(io.imread,Y))
 
     n_channel = 1 if X[0].ndim == 2 else X[0].shape[-1]
     axis_norm = (0,1)   # normalize channels independently
@@ -57,13 +64,12 @@ def load_data(img_dir, mask_dir):
     return X, Y
 
 def split_train_val(X, Y, perc_val=0.15):
-
     assert len(X) > 1, "not enough training data"
     rng = np.random.RandomState(42)
     ind = rng.permutation(len(X))
     n_val = max(1, int(round(perc_val * len(ind))))
     ind_train, ind_val = ind[:-n_val], ind[-n_val:]
-    X_val, Y_val = [X[i] for i in ind_val]  , [Y[i] for i in ind_val]
+    X_val, Y_val = [X[i] for i in ind_val], [Y[i] for i in ind_val]
     X_trn, Y_trn = [X[i] for i in ind_train], [Y[i] for i in ind_train] 
     print('number of images: %3d' % len(X))
     print('- training:       %3d' % len(X_trn))
