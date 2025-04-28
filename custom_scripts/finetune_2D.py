@@ -46,10 +46,15 @@ def load_data(img_dir, mask_dir):
     X = sorted(glob(os.path.join(img_dir, '*.tif')))
     Y = sorted(glob(os.path.join(mask_dir, '*.png')))
 
-    assert all(x.split('/')[-1].split('.')[0]==y.split('/')[-1].split('.')[0] for x,y in zip(X,Y))
+    assert all(x.split('/')[-1].split('.')[0]==y.split('/')[-1].split('.')[0] for x,y in zip(X,Y)), \
+        "Image and mask filenames do not match. Please check the directories."
 
     X = list(map(tiff.imread,X))
     Y = list(map(io.imread,Y))
+
+    print("Min and max of images and masks:")
+    print(X[0].min(), X[0].max())
+    print(Y[0].min(), Y[0].max())
 
     n_channel = 1 if X[0].ndim == 2 else X[0].shape[-1]
     axis_norm = (0,1)   # normalize channels independently
@@ -60,6 +65,10 @@ def load_data(img_dir, mask_dir):
 
     X = [normalize(x,1,99.8,axis=axis_norm) for x in tqdm(X)]
     Y = [fill_label_holes(y) for y in tqdm(Y)]
+
+    print("Min and max of images and masks after normalization:")
+    print(X[0].min(), X[0].max())
+    print(Y[0].min(), Y[0].max())
 
     return X, Y
 
@@ -90,8 +99,8 @@ def resume_training(X_trn, Y_trn, X_val, Y_val, epochs=2, steps_per_epoch=10):
                 epochs=epochs, 
                 steps_per_epoch=steps_per_epoch)
     
-    # saves the model weights and configuration?
-    model.save_weights('weights_best.h5')
+    # # saves the model weights and configuration?
+    # model.export_TF(fname=os.path.join(out_dir, 'weights_best.h5'))
     
     return model
 
@@ -107,5 +116,6 @@ if __name__ == '__main__':
 
     X, Y = load_data(args.img_dir, args.mask_dir)
     X_trn, Y_trn, X_val, Y_val = split_train_val(X, Y)
-    model = resume_training(X_trn, Y_trn, X_val, Y_val, args.out_dir)
-    model.export_TF()
+    model = resume_training(X_trn, Y_trn, X_val, Y_val)
+
+    model.export_TF(fname=os.path.join(out_dir, 'weights_best.h5'))
