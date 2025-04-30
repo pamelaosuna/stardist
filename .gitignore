@@ -25,5 +25,6 @@ examples/**/data
 
 # custom
 .vscode/
-data_altug/
+data_altug_2D/
+data_altug_3D/
 out_sbatch/

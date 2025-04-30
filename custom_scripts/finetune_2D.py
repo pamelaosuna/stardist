@@ -8,19 +8,24 @@ from skimage import io
 from tqdm import tqdm
 import numpy as np
 
-from csbdeep.utils import Path, normalize
+from csbdeep.utils import normalize
 
 from stardist.models import StarDist2D, Config2D
 from stardist.plot import render_label
 from stardist import fill_label_holes
 
-def random_fliprot(img, mask): 
+def random_fliprot(img, mask, axis=None): 
+    if axis is None:
+        axis = tuple(range(mask.ndim))
+
     assert img.ndim >= mask.ndim
-    axes = tuple(range(mask.ndim))
-    perm = tuple(np.random.permutation(axes))
-    img = img.transpose(perm + tuple(range(mask.ndim, img.ndim))) 
-    mask = mask.transpose(perm) 
-    for ax in axes: 
+    perm = tuple(np.random.permutation(axis))
+    transpose_axis = np.arange(mask.ndim)
+    for a, p in zip(axis, perm):
+        transpose_axis[a] = p
+    img = img.transpose(transpose_axis + tuple(range(mask.ndim, img.ndim))) 
+    mask = mask.transpose(transpose_axis) 
+    for ax in axis: 
         if np.random.rand() > 0.5:
             img = np.flip(img, axis=ax)
             mask = np.flip(mask, axis=ax)
@@ -52,23 +57,15 @@ def load_data(img_dir, mask_dir):
     X = list(map(tiff.imread,X))
     Y = list(map(io.imread,Y))
 
-    print("Min and max of images and masks:")
-    print(X[0].min(), X[0].max())
-    print(Y[0].min(), Y[0].max())
-
     n_channel = 1 if X[0].ndim == 2 else X[0].shape[-1]
     axis_norm = (0,1)   # normalize channels independently
 
     if n_channel > 1:
         print("Normalizing image channels %s." % ('jointly' if axis_norm is None or 2 in axis_norm else 'independently'))
-    sys.stdout.flush()
+        sys.stdout.flush()
 
     X = [normalize(x,1,99.8,axis=axis_norm) for x in tqdm(X)]
     Y = [fill_label_holes(y) for y in tqdm(Y)]
-
-    print("Min and max of images and masks after normalization:")
-    print(X[0].min(), X[0].max())
-    print(Y[0].min(), Y[0].max())
 
     return X, Y
 
@@ -99,9 +96,6 @@ def resume_training(X_trn, Y_trn, X_val, Y_val, epochs=2, steps_per_epoch=10):
                 epochs=epochs, 
                 steps_per_epoch=steps_per_epoch)
     
-    # # saves the model weights and configuration?
-    # model.export_TF(fname=os.path.join(out_dir, 'weights_best.h5'))
-    
     return model
 
 if __name__ == '__main__':
@@ -118,4 +112,4 @@ if __name__ == '__main__':
     X_trn, Y_trn, X_val, Y_val = split_train_val(X, Y)
     model = resume_training(X_trn, Y_trn, X_val, Y_val)
 
-    model.export_TF(fname=os.path.join(out_dir, 'weights_best.h5'))
+    model.export_TF(fname=os.path.join(args.out_dir, 'weights_best_2D.h5'))
