@@ -15,16 +15,16 @@ from stardist.plot import render_label
 from stardist import fill_label_holes
 
 def random_fliprot(img, mask, axis=None): 
-    if axis is None:
-        axis = tuple(range(mask.ndim))
+    # if axis is None:
+    #     axis = tuple(range(mask.ndim))
 
     assert img.ndim >= mask.ndim
+
+    axis = tuple(range(mask.ndim))
     perm = tuple(np.random.permutation(axis))
-    transpose_axis = np.arange(mask.ndim)
-    for a, p in zip(axis, perm):
-        transpose_axis[a] = p
-    img = img.transpose(transpose_axis + tuple(range(mask.ndim, img.ndim))) 
-    mask = mask.transpose(transpose_axis) 
+    img = img.transpose(perm + tuple(range(mask.ndim, img.ndim))) 
+    mask = mask.transpose(perm)
+
     for ax in axis: 
         if np.random.rand() > 0.5:
             img = np.flip(img, axis=ax)
@@ -89,6 +89,8 @@ def resume_training(X_trn, Y_trn, X_val, Y_val, epochs=2, steps_per_epoch=10):
 
     # loads a pretrained model
     model = StarDist2D.from_pretrained('2D_versatile_fluo')
+    # TODO: add custom config
+    # model = StarDist2D(conf, name='synapse_stardist_2D', basedir='checkpoints/2D/')
 
     model.train(X_trn, Y_trn, 
                 validation_data=(X_val,Y_val), 
@@ -103,7 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('--img_dir', type=str, required=True)
     parser.add_argument('--mask_dir', type=str, required=True)
     parser.add_argument('--out_dir', type=str,
-                        default='checkpoints/')
+                        default='checkpoints/2D/')
     args = parser.parse_args()
 
     os.makedirs(args.out_dir, exist_ok=True)
@@ -112,4 +114,4 @@ if __name__ == '__main__':
     X_trn, Y_trn, X_val, Y_val = split_train_val(X, Y)
     model = resume_training(X_trn, Y_trn, X_val, Y_val)
 
-    model.export_TF(fname=os.path.join(args.out_dir, 'weights_best_2D.h5'))
+    model.export_TF(fname=os.path.join(args.out_dir, 'weights_best.h5'))

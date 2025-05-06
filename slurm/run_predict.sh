@@ -14,18 +14,18 @@ eval "$(/scratch/dldevel/osuna/miniconda3/bin/conda shell.bash hook)"
 conda activate xtc
 which python3
 echo "loaded conda environment"
-echo "start fine-tuning stardist model..."
+echo "start prediction with stardist model..."
 date
 
-# python3 -u custom_scripts/finetune_2D.py \
-#  --img_dir data_altug_2D/images/ \
-#  --mask_dir data_altug_2D/masks/ \
-#  --out_dir checkpoints/2D/
+# python3 -u custom_scripts/predict_2D.py \
+#     --img_dir data_altug_2D/images/ \
+#     --out_dir data_altug_2D/predictions/ \
+#     --model_path checkpoints/2D/weights_best.h5
 
-python3 -u custom_scripts/finetune_3D.py \
- --train_dir data_altug_3D/train/ \
- --val_dir data_altug_3D/val/ \
- --out_dir checkpoints/3D/
+python3 -u custom_scripts/predict_3D.py \
+    --model_name synapse_stardist_3D \
+    --img_dir data_altug_3D/val/images/ \
+    --out_dir data_altug_3D/predictions/
 
 echo job finished
 date
