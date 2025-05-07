@@ -19,13 +19,13 @@ def random_fliprot(img, mask, axis=None):
     #     axis = tuple(range(mask.ndim))
 
     assert img.ndim >= mask.ndim
-
+    
     axis = tuple(range(mask.ndim))
     perm = tuple(np.random.permutation(axis))
     img = img.transpose(perm + tuple(range(mask.ndim, img.ndim))) 
     mask = mask.transpose(perm)
 
-    for ax in axis: 
+    for ax in axis:
         if np.random.rand() > 0.5:
             img = np.flip(img, axis=ax)
             mask = np.flip(mask, axis=ax)

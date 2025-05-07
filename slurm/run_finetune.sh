@@ -23,9 +23,12 @@ date
 #  --out_dir checkpoints/2D/
 
 python3 -u custom_scripts/finetune_3D.py \
- --train_dir data_altug_3D/train/ \
- --val_dir data_altug_3D/val/ \
- --out_dir checkpoints/3D/
+ --train_dir data_altug_3D/train_crop/ \
+ --val_dir data_altug_3D/val_crop/ \
+ --out_dir checkpoints/3D/ \
+ --nepochs 200 \
+ --batch_size 1 \
+ --model_name synapse_stardist_3D_grid=1-1-1_aug=True_bs=1
 
 echo job finished
 date

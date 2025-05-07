@@ -24,7 +24,7 @@ date
 
 python3 -u custom_scripts/predict_3D.py \
     --model_name synapse_stardist_3D \
-    --img_dir data_altug_3D/val/images/ \
+    --img_dir data_altug_3D/val_crop/images/ \
     --out_dir data_altug_3D/predictions/
 
 echo job finished
