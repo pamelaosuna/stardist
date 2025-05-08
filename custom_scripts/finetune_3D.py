@@ -107,7 +107,7 @@ def resume_training(X_trn, Y_trn, X_val, Y_val, model_name, nepochs, batch_size,
     model.train(
         X_trn, Y_trn,
         validation_data=(X_val, Y_val),
-        augmenter=augmenter, # try changing this # None
+        augmenter=None, # augmenter, # try changing this # None
         epochs=nepochs,
         steps_per_epoch=10
         )

@@ -73,7 +73,8 @@ if __name__ == '__main__':
                         help='Directory to save the predicted masks')
     args = parser.parse_args()
 
-    os.makedirs(args.out_dir, exist_ok=True)
+    out_dir = os.path.join(args.out_dir, args.model_name)
+    os.makedirs(out_dir, exist_ok=True)
 
     _, Y_tmp = load_data(
         args.img_dir,
@@ -81,15 +82,19 @@ if __name__ == '__main__':
     )
 
     X, filepaths = load_data_wo_GT(args.img_dir)
-    model = StarDist3D(None, name='synapse_stardist_3D', basedir='checkpoints/3D/')
+    model = StarDist3D(
+        None, 
+        name=args.model_name, 
+        basedir='checkpoints/3D/'
+    )
 
     for i, img in enumerate(X):
         fp = filepaths[i]
-        plot_img_label(model, img, Y_tmp[i], args.out_dir, os.path.basename(fp).replace('.tif', '_GT.tif'))
+        plot_img_label(model, img, Y_tmp[i], out_dir, os.path.basename(fp).replace('.tif', '_GT.png'))
 
         labels, details = model.predict_instances(img)
         print(f'Predicted {len(np.unique(labels))-1} objects in {os.path.basename(fp)}')
-        tiff.imwrite(os.path.join(args.out_dir, os.path.basename(fp).replace('.tif', '_labels.tif')), labels.astype(np.uint16))
-        out_fn = os.path.basename(fp)
-        plot_img_label(model, img, labels, args.out_dir, out_fn)
+        tiff.imwrite(os.path.join(out_dir, os.path.basename(fp)), labels.astype(np.uint16))
+        out_fn = os.path.basename(fp).replace('.tif', '_pred.png')
+        plot_img_label(model, img, labels, out_dir, out_fn)
         

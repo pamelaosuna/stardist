@@ -28,7 +28,7 @@ python3 -u custom_scripts/finetune_3D.py \
  --out_dir checkpoints/3D/ \
  --nepochs 200 \
  --batch_size 1 \
- --model_name synapse_stardist_3D_grid=1-1-1_aug=True_bs=1
+ --model_name synapse_stardist_3D_grid=1-1-1_aug=False_bs=1
 
 echo job finished
 date
