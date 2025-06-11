@@ -10,6 +10,7 @@ from tqdm import tqdm
 import matplotlib
 matplotlib.rcParams["image.interpolation"] = 'none'
 import matplotlib.pyplot as plt
+from matplotlib import colors
 
 from csbdeep.utils import normalize
 
@@ -18,9 +19,6 @@ from stardist import random_label_cmap
 from finetune_3D import (
     load_data
 )
-
-np.random.seed(6)
-lbl_cmap = random_label_cmap()
 
 def load_data_wo_GT(img_dir):
     filepaths = sorted(glob(os.path.join(img_dir, '*.tif')))
@@ -63,6 +61,39 @@ def plot_img_label(model, img, labels, out_dir, out_fn, show_dist=True):
     plt.savefig(os.path.join(out_dir, out_fn))
     plt.close()
 
+def labels_to_rgb(labels):
+    """
+    Convert a 3D label array into an RGB image where each label is assigned a unique color.
+    """
+    # Create a colormap with a unique color for each label
+    max_label = labels.max()
+    # cmap = plt.cm.get_cmap('tab20', max_label + 1)  # Use a colormap with enough colors
+    # colormap = colors.ListedColormap(cmap.colors)
+
+    # Normalize labels to the range [0, 1] for colormap
+    norm = colors.Normalize(vmin=0, vmax=max_label)
+
+    # Apply the colormap to the labels
+    rgb_image = random_label_cmap(norm(labels))
+
+    # Convert to uint8 (0-255 range) for saving as an image
+    rgb_image = (rgb_image[..., :3] * 255).astype(np.uint8)  # Drop alpha channel
+    return rgb_image
+
+def overlay_labels_on_image(img, rgb_labels):
+    """
+    Overlay the RGB labels on the original image.
+    """
+    # convert the image to RGB if it's grayscale
+    img = np.stack([img] * 3, axis=-1)
+
+    # Ensure the image and labels have the same shape
+    assert img.shape[:2] == rgb_labels.shape[:2], "Image and labels must have the same spatial dimensions"
+    # Overlay the labels on the image using alpha blending
+    overlay = np.clip(img * 0.5 + rgb_labels * 0.5, 0, 255).astype(np.uint8)
+
+    return overlay
+        
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Predict 2D images with a trained StarDist model')
     parser.add_argument('--img_dir', type=str, required=True,
@@ -76,7 +107,10 @@ if __name__ == '__main__':
     out_dir = os.path.join(args.out_dir, args.model_name)
     os.makedirs(out_dir, exist_ok=True)
 
-    _, Y_tmp = load_data(
+    np.random.seed(6)
+    lbl_cmap = random_label_cmap()
+
+    _, Y_GT = load_data(
         args.img_dir,
         os.path.join(args.img_dir, '..', 'masks'),
     )
@@ -90,11 +124,15 @@ if __name__ == '__main__':
 
     for i, img in enumerate(X):
         fp = filepaths[i]
-        plot_img_label(model, img, Y_tmp[i], out_dir, os.path.basename(fp).replace('.tif', '_GT.png'))
+        plot_img_label(model, img, Y_GT[i], out_dir, os.path.basename(fp).replace('.tif', '_GT.png'))
+        rgb_labels_gt = labels_to_rgb(Y_GT[i].astype(np.uint16))
+        tiff.imwrite(os.path.join(out_dir, os.path.basename(fp).replace('.tif', '_GT_colored.tif')), rgb_labels_gt, photometric='rgb')
 
         labels, details = model.predict_instances(img)
+        rgb_labels = labels_to_rgb(labels.astype(np.uint16))
+        tiff.imwrite(os.path.join(out_dir, os.path.basename(fp).replace('.tif', '_pred_colored.tif')), rgb_image, photometric='rgb')
+
         print(f'Predicted {len(np.unique(labels))-1} objects in {os.path.basename(fp)}')
         tiff.imwrite(os.path.join(out_dir, os.path.basename(fp)), labels.astype(np.uint16))
         out_fn = os.path.basename(fp).replace('.tif', '_pred.png')
         plot_img_label(model, img, labels, out_dir, out_fn)
-        
