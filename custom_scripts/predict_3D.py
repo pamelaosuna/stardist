@@ -61,24 +61,19 @@ def plot_img_label(model, img, labels, out_dir, out_fn, show_dist=True):
     plt.savefig(os.path.join(out_dir, out_fn))
     plt.close()
 
-def labels_to_rgb(labels):
+def labels_to_rgb(labels, cmap=None):
     """
-    Convert a 3D label array into an RGB image where each label is assigned a unique color.
+    Convert a 3D label array into an 4D RGB image (z, y, x, 3) where each label is assigned a unique color.
     """
-    # Create a colormap with a unique color for each label
+    if cmap is None:
+        cmap = random_label_cmap()
     max_label = labels.max()
-    # cmap = plt.cm.get_cmap('tab20', max_label + 1)  # Use a colormap with enough colors
-    # colormap = colors.ListedColormap(cmap.colors)
-
-    # Normalize labels to the range [0, 1] for colormap
     norm = colors.Normalize(vmin=0, vmax=max_label)
-
-    # Apply the colormap to the labels
-    rgb_image = random_label_cmap(norm(labels))
-
-    # Convert to uint8 (0-255 range) for saving as an image
-    rgb_image = (rgb_image[..., :3] * 255).astype(np.uint8)  # Drop alpha channel
-    return rgb_image
+    rgb = np.zeros(labels.shape + (3,), dtype=np.uint8)
+    for z in range(labels.shape[0]):
+        rgb_slice = cmap(norm(labels[z]))
+        rgb[z] = (rgb_slice[..., :3] * 255).astype(np.uint8)
+    return rgb
 
 def overlay_labels_on_image(img, rgb_labels):
     """
@@ -121,18 +116,20 @@ if __name__ == '__main__':
         name=args.model_name, 
         basedir='checkpoints/3D/'
     )
+    out_dir_viz = os.path.join(out_dir, 'viz')
+    os.makedirs(out_dir_viz, exist_ok=True)
 
     for i, img in enumerate(X):
         fp = filepaths[i]
-        plot_img_label(model, img, Y_GT[i], out_dir, os.path.basename(fp).replace('.tif', '_GT.png'))
+        plot_img_label(model, img, Y_GT[i], out_dir_viz, os.path.basename(fp).replace('.tif', '_GT.png'))
         rgb_labels_gt = labels_to_rgb(Y_GT[i].astype(np.uint16))
-        tiff.imwrite(os.path.join(out_dir, os.path.basename(fp).replace('.tif', '_GT_colored.tif')), rgb_labels_gt, photometric='rgb')
+        tiff.imwrite(os.path.join(out_dir_viz, os.path.basename(fp).replace('.tif', '_GT_colored.tif')), rgb_labels_gt, photometric='rgb')
 
         labels, details = model.predict_instances(img)
         rgb_labels = labels_to_rgb(labels.astype(np.uint16))
-        tiff.imwrite(os.path.join(out_dir, os.path.basename(fp).replace('.tif', '_pred_colored.tif')), rgb_image, photometric='rgb')
+        tiff.imwrite(os.path.join(out_dir_viz, os.path.basename(fp).replace('.tif', '_pred_colored.tif')), rgb_labels, photometric='rgb')
 
         print(f'Predicted {len(np.unique(labels))-1} objects in {os.path.basename(fp)}')
         tiff.imwrite(os.path.join(out_dir, os.path.basename(fp)), labels.astype(np.uint16))
         out_fn = os.path.basename(fp).replace('.tif', '_pred.png')
-        plot_img_label(model, img, labels, out_dir, out_fn)
+        plot_img_label(model, img, labels, out_dir_viz, out_fn)

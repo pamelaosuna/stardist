@@ -18,7 +18,7 @@ echo "start fine-tuning stardist model..."
 date
 
 python3 -u custom_scripts/quantitative_eval.py \
-    --pred_dir data_altug_3D/predictions/synapse_stardist_3D_grid=1-1-1_aug=False_bs=1_old \
+    --pred_dir data_altug_3D/predictions/synapse_stardist_3D_grid=1-1-1_aug=True_bs=1_2025-07-23 \
     --gt_dir data_altug_3D/val_crop/masks/
 
 echo job finished

@@ -8,7 +8,7 @@
 #SBATCH --mem=50G
 #SBATCH --time=10:00:00
 
-# module load nvidia/cuda/12.3.0
+module load nvidia/cuda/12.3.0
 echo "load conda environment"
 eval "$(/scratch/dldevel/osuna/miniconda3/bin/conda shell.bash hook)"
 conda activate xtc
@@ -28,7 +28,8 @@ python3 -u custom_scripts/finetune_3D.py \
  --out_dir checkpoints/3D/ \
  --nepochs 200 \
  --batch_size 1 \
- --model_name synapse_stardist_3D_grid=1-1-1_aug=False_bs=1
+ --aug \
+ --model_name synapse_stardist_3D_grid=1-1-1_aug=True_bs=1_2025-07-23
 
 echo job finished
 date

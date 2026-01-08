@@ -71,7 +71,17 @@ def augmenter(x, y):
     x = random_intensity_change(x)
     return x, y
 
-def resume_training(X_trn, Y_trn, X_val, Y_val, model_name, nepochs, batch_size, out_dir):
+def resume_training(
+    X_trn, 
+    Y_trn, 
+    X_val, 
+    Y_val, 
+    model_name, 
+    nepochs, 
+    batch_size,
+    augment,
+    out_dir
+    ):
     # 96 is a good default choice (see 1_data.ipynb)
     n_rays = 96
     anisotropy = (5.0, 1.0, 1.0)
@@ -107,7 +117,7 @@ def resume_training(X_trn, Y_trn, X_val, Y_val, model_name, nepochs, batch_size,
     model.train(
         X_trn, Y_trn,
         validation_data=(X_val, Y_val),
-        augmenter=None, # augmenter, # try changing this # None
+        augmenter=augmenter if augment else None, # augmenter, # try changing this # None
         epochs=nepochs,
         steps_per_epoch=10
         )
@@ -128,6 +138,8 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int,
                         default=1,
                         help='batch size for training')
+    parser.add_argument('--aug', action='store_true',
+                        help='use data augmentation during training')
 
     args = parser.parse_args()
     print(args)
@@ -155,5 +167,6 @@ if __name__ == '__main__':
         args.model_name,
         args.nepochs,
         args.batch_size,
+        args.aug,
         args.out_dir
     )

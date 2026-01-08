@@ -45,8 +45,8 @@ if __name__ == '__main__':
     assert [os.path.basename(gt_file) == os.path.basename(pred_file) for gt_file, pred_file in zip(gt_files, pred_files)], \
         "Ground truth and predicted files do not match"
     
-    gt_imgs = [tiff.imread(gt_file) for gt_file in gt_files]
-    pred_imgs = [tiff.imread(pred_file) for pred_file in pred_files]
+    gt_imgs = [tiff.imread(gt_file)[1:-1] for gt_file in gt_files]
+    pred_imgs = [tiff.imread(pred_file)[1:-1] for pred_file in pred_files]
 
     print(f'Number of objects in GT: {[len(np.unique(gt_img-1)) for gt_img in gt_imgs]}')
     print(f'Number of objects in pred: {[len(np.unique(pred_img-1)) for pred_img in pred_imgs]}')

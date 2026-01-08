@@ -23,7 +23,7 @@ date
 #     --model_path checkpoints/2D/weights_best.h5
 
 python3 -u custom_scripts/predict_3D.py \
-    --model_name synapse_stardist_3D \
+    --model_name synapse_stardist_3D_grid=1-1-1_aug=True_bs=1_2025-07-23 \
     --img_dir data_altug_3D/val_crop/images/ \
     --out_dir data_altug_3D/predictions/
 
